@@ -12,51 +12,65 @@ import {
 } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-import AddButton from "./AddButton";
-
 import { Dimensions } from "react-native";
 import firebase from "firebase";
 require("firebase/firestore");
 require("firebase/firebase-storage");
 import { TouchableOpacity } from "react-native-gesture-handler";
 
-function MContriPend({ navigation, language }) {
+function VWPend({ navigation, language }) {
   const [status, setStatus] = useState("All");
   const [datalist, setDatalist] = useState("");
-
-  // useEffect(() => {
-  //   setDatalist(dictionaryAll);
-  // }, [dictionaryAll]);
-
+  const [refreshing, setRefreshing] = useState(true);
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      firebase
-        .firestore()
-        .collection("languages")
-        .doc(language)
-        .collection("dictionary")
-        .where("uid", "==", firebase.auth().currentUser.uid)
-        .where("status", "==", "0")
-        .get()
-        .then((snapshot) => {
-          let dictionaryAll = snapshot.docs.map((doc) => {
-            const data = doc.data();
-            const id = doc.id;
-            return { id, ...data };
-          });
-          setDatalist(dictionaryAll);
-        });
-    });
+    getData();
+  }, []);
 
-    return unsubscribe;
-  }, [navigation]);
+  const getData = () => {
+    //Service to get the data from the server to render
+    firebase
+      .firestore()
+      .collection("languages")
+      .doc(language)
+      .collection("dictionary")
+      .where("upload", "==", "1")
+      .where("status", "==", "0")
+      .get()
+      .then((snapshot) => {
+        console.log(snapshot, "-=-=-=-=-=-=-=-=");
+        let dictionaryAll = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const id = doc.id;
+          return { id, ...data };
+        });
+        setDatalist(dictionaryAll);
+        setRefreshing(false);
+      });
+  };
+
+  const onRefresh = () => {
+    //Clear old data of the list
+    setDatalist([]);
+    //Call the Service to get the latest data
+    getData();
+  };
+
+  const setStatusFilter = (status) => {
+    if (status !== "All") {
+      //purple and green
+      setDatalist([...data.filter((e) => e.status === status)]);
+    } else {
+      setDatalist(data);
+    }
+    setStatus(status);
+  };
 
   const renderItem = ({ item, index }) => {
     return (
       <TouchableOpacity
         key={index}
         style={styles.itemContainer}
-        onPress={() => navigation.navigate("UserContribution", { data: item })}
+        onPress={() => navigation.navigate("Validation", { data: item })}
       >
         <View style={{ flexDirection: "column", flex: 1 }}>
           <View style={styles.itemBody}>
@@ -117,6 +131,7 @@ function MContriPend({ navigation, language }) {
   const separator = () => {
     return <View style={{ height: 1, backgroundColor: "#E6E5E5" }} />;
   };
+
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
@@ -124,12 +139,18 @@ function MContriPend({ navigation, language }) {
         keyExtractor={(e, i) => i.toString()}
         renderItem={renderItem}
         ItemSeparatorComponent={separator}
+        refreshControl={
+          <RefreshControl
+            //refresh control used for the Pull to Refresh
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
       />
     </SafeAreaView>
   );
 }
-
-export default MContriPend;
+export default VWPend;
 
 const styles = StyleSheet.create({
   container: {

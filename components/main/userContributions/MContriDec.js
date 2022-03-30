@@ -1,65 +1,79 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  TextInput,
-  Image,
-  Button,
-  TouchableOpacity,
   Text,
   StyleSheet,
+  Image,
   Pressable,
-  ScrollView,
-  Alert,
-  Dimensions,
-  SafeAreaView,
+  TextInput,
   FlatList,
+  RefreshControl,
+  SafeAreaView,
 } from "react-native";
-import firebase from "firebase";
-import { NavigationContainer } from "@react-navigation/native";
-require("firebase/firestore");
-require("firebase/firebase-storage");
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-function Applications({ navigation }) {
+import { Dimensions } from "react-native";
+import firebase from "firebase";
+require("firebase/firestore");
+require("firebase/firebase-storage");
+import { TouchableOpacity } from "react-native-gesture-handler";
+
+function MContriDec({ currentUser, navigation, props, language }) {
   const [status, setStatus] = useState("All");
+
+  // useEffect(() => {
+  //   setDatalist(dictionaryAll);
+  // }, [dictionaryAll]);
+
   const [datalist, setDatalist] = useState("");
+  const [refreshing, setRefreshing] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      firebase
-        .firestore()
-        .collection("users")
-        .where("applicant", "==", "1")
-        .where("status", "==", "0")
-        .get()
-        .then((snapshot) => {
-          let usersAll = snapshot.docs.map((doc) => {
-            const data = doc.data();
-            const id = doc.id;
-            return { id, ...data };
-          });
-          setDatalist(usersAll);
-        });
-    });
+    getData();
+  }, []);
 
-    return unsubscribe;
-  }, [navigation]);
+  const getData = () => {
+    //Service to get the data from the server to render
+    firebase
+      .firestore()
+      .collection("languages")
+      .doc(language)
+      .collection("dictionary")
+      .where("uid", "==", firebase.auth().currentUser.uid)
+      .where("status", "==", "2")
+      .get()
+      .then((snapshot) => {
+        console.log(snapshot, "-=-=-=-=-=-=-=-=");
+        let dictionaryAll = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const id = doc.id;
+          return { id, ...data };
+        });
+        setDatalist(dictionaryAll);
+        setRefreshing(false);
+      });
+  };
+
+  const onRefresh = () => {
+    //Clear old data of the list
+    setDatalist([]);
+    //Call the Service to get the latest data
+    getData();
+  };
 
   const renderItem = ({ item, index }) => {
     return (
       <TouchableOpacity
         key={index}
         style={styles.itemContainer}
-        onPress={() =>
-          navigation.navigate("ConfirmationScreen", { data: item })
-        }
+        onPress={() => navigation.navigate("UserContribution", { data: item })}
       >
         <View style={{ flexDirection: "column", flex: 1 }}>
           <View style={styles.itemBody}>
-            <Text style={styles.itemsName}> {item?.name}</Text>
+            <Text style={styles.itemsName}> {item?.word}</Text>
           </View>
           <View style={styles.itemBody}>
-            <Text> {item?.note}</Text>
+            <Text> {item?.meaning}</Text>
           </View>
         </View>
 
@@ -113,7 +127,6 @@ function Applications({ navigation }) {
   const separator = () => {
     return <View style={{ height: 1, backgroundColor: "#E6E5E5" }} />;
   };
-
   return (
     <SafeAreaView style={styles.container}>
       <FlatList
@@ -121,19 +134,25 @@ function Applications({ navigation }) {
         keyExtractor={(e, i) => i.toString()}
         renderItem={renderItem}
         ItemSeparatorComponent={separator}
+        refreshControl={
+          <RefreshControl
+            //refresh control used for the Pull to Refresh
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
       />
     </SafeAreaView>
   );
 }
 
-export default Applications;
+export default MContriDec;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 20,
+    //paddingHorizontal:10,
     justifyContent: "center",
-    paddingVertical: 20,
   },
   listTab: {
     alignSelf: "center",
@@ -170,6 +189,7 @@ const styles = StyleSheet.create({
   itemContainer: {
     flexDirection: "row",
     paddingVertical: 15,
+    paddingHorizontal: 20,
   },
   itemLogo: {
     padding: 10,
@@ -212,10 +232,20 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     letterSpacing: 0.25,
-    color: "#8E2835",
-    paddingVertical: 15,
+    position: "relative",
+    alignSelf: "center",
+    color: "white",
   },
-
+  textSubHead: {
+    flexDirection: "row",
+    fontSize: 13,
+    letterSpacing: 0.25,
+    color: "white",
+  },
+  title: {
+    top: 40,
+    //left: 110,
+  },
   statusFont: {
     fontWeight: "bold",
   },

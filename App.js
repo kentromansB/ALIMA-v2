@@ -55,13 +55,13 @@ import Vocabulary2Screen from "./components/main/coursepacks/screens/Vocabulary/
 import Vocabulary3Screen from "./components/main/coursepacks/screens/Vocabulary/Vocabulary3";
 import Vocabulary4Screen from "./components/main/coursepacks/screens/Vocabulary/Vocabulary4";
 import newDReviewScreen from "./components/main/newDReview";
-import MyContributionsScreen from "./components/main/MyContributions";
+import MyContributionsScreen from "./components/main/userContributions/MyContributions";
 import BeAValidatorScreen from "./components/main/BeAValidator";
 import ValidatorAppScreen from "./components/main/ValidatorApplication";
 import ValidationScreen from "./components/main/Validation";
-import ValidateWordScreen from "./components/main/ValidateWord";
+import ValidateWordScreen from "./components/main/wordValidation/ValidateWord";
 import DeclineScreen from "./components/main/Decline";
-import ApplicationsScreen from "./components/main/Applications";
+import ApplicationsScreen from "./components/main/userValidation/Applications";
 import ApplicationConfScreen from "./components/main/ApplicationConf";
 import SpeechScreen from "./components/main/Speech";
 // import SpeechScreen1 from "./components/main/coursepacks/screens/Speech/Speech1";
@@ -82,8 +82,6 @@ import AddLanguageScreen from "./components/main/AddLanguage";
 import AddQuiz from "./components/main/AddQuiz";
 import AddQuestion from "./components/main/AddQuestion";
 import EditQuestion from "./components/main/EditQuestion";
-
-
 
 const Stack = createStackNavigator();
 
@@ -703,7 +701,6 @@ export class App extends Component {
                 },
               }}
             />
-            
           </Stack.Navigator>
         </NavigationContainer>
       </Provider>

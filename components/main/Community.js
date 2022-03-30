@@ -89,8 +89,9 @@ const styles = StyleSheet.create({
   },
   container: {
     alignItems: "center",
-    marginTop: 20,
-    marginBottom: 70,
+    marginTop: 10,
+    marginBottom: -350,
+    flex: 1,
   },
   innercontainer: {
     flex: 1,

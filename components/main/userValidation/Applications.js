@@ -12,14 +12,6 @@ import {
   TouchableOpacity,
   Dimensions,
 } from "react-native";
-import firebase from "firebase";
-require("firebase/firestore");
-require("firebase/firebase-storage");
-
-import { connect } from "react-redux";
-import { NavigationContainer } from "@react-navigation/native";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { fetchDictionary } from "../../redux/actions";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 
 import AllScreen from "./ApplyAll";

@@ -16,20 +16,19 @@ import firebase from "firebase";
 require("firebase/firestore");
 require("firebase/firebase-storage");
 
+import { connect } from "react-redux";
 import { NavigationContainer } from "@react-navigation/native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { fetchDictionary } from "../../redux/actions";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 
-import AllScreen from "./VWAll";
-import ConfirmScreen from "./VWConf";
-import PendingScreen from "./VWPend";
-import DeclineScreen from "./VWDec";
-var head = require("../../assets/learning.svg");
+import AllScreen from "./MContriAll";
+import ConfirmScreen from "./MContriConf";
+import PendingScreen from "./MContriPend";
+import DeclineScreen from "./MContriDec";
 
 const Tab = createMaterialTopTabNavigator();
 
-function ValidateWord({ route }) {
+function MyContributions({ route }) {
   const { language } = route?.params ?? {};
 
   return (
@@ -69,8 +68,12 @@ function ValidateWord({ route }) {
     </SafeAreaView>
   );
 }
+const mapStateToProps = (store) => ({
+  dictionaryAll: store.userState.dictionaryAll,
+  currentUser: store.userState.currentUser,
+});
 
-export default ValidateWord;
+export default connect(mapStateToProps, null)(MyContributions);
 
 const styles = StyleSheet.create({
   container: {

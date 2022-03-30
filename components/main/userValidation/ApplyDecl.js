@@ -1,61 +1,60 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
+  TextInput,
+  Image,
+  Button,
+  TouchableOpacity,
   Text,
   StyleSheet,
-  Image,
   Pressable,
-  TextInput,
+  ScrollView,
+  Alert,
+  Dimensions,
+  SafeAreaView,
   FlatList,
   RefreshControl,
-  SafeAreaView,
 } from "react-native";
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import { connect } from "react-redux";
-import AddButton from "./AddButton";
-
-import { Dimensions } from "react-native";
 import firebase from "firebase";
+import { NavigationContainer } from "@react-navigation/native";
 require("firebase/firestore");
 require("firebase/firebase-storage");
-import { TouchableOpacity } from "react-native-gesture-handler";
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-function VWConf({ navigation, language }) {
+function Applications({ navigation }) {
   const [status, setStatus] = useState("All");
   const [datalist, setDatalist] = useState("");
+  const [refreshing, setRefreshing] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      firebase
-        .firestore()
-        .collection("languages")
-        .doc(language)
-        .collection("dictionary")
-        .where("upload", "==", "1")
-        .where("status", "==", "1")
-        .get()
-        .then((snapshot) => {
-          console.log(snapshot, "-=-=-=-=-=-=-=-=");
-          let validatedDictionary = snapshot.docs.map((doc) => {
-            const data = doc.data();
-            const id = doc.id;
-            return { id, ...data };
-          });
-          setDatalist(validatedDictionary);
+    getData();
+  }, []);
+
+  const getData = () => {
+    //Service to get the data from the server to render
+    firebase
+      .firestore()
+      .collection("users")
+      .where("applicant", "==", "1")
+      .where("status", "==", "2")
+      .get()
+      .then((snapshot) => {
+        console.log(snapshot, "-=-=-=-=-=-=-=-=");
+        let users = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const id = doc.id;
+          return { id, ...data };
         });
-    });
+        setDatalist(users);
+        setRefreshing(false);
+      });
+  };
 
-    return unsubscribe;
-  }, [navigation]);
-
-  const setStatusFilter = (status) => {
-    if (status !== "All") {
-      //purple and green
-      setDatalist([...data.filter((e) => e.status === status)]);
-    } else {
-      setDatalist(data);
-    }
-    setStatus(status);
+  const onRefresh = () => {
+    //Clear old data of the list
+    setDatalist([]);
+    //Call the Service to get the latest data
+    getData();
   };
 
   const renderItem = ({ item, index }) => {
@@ -63,14 +62,16 @@ function VWConf({ navigation, language }) {
       <TouchableOpacity
         key={index}
         style={styles.itemContainer}
-        onPress={() => navigation.navigate("Validation", { data: item })}
+        onPress={() =>
+          navigation.navigate("ConfirmationScreen", { data: item })
+        }
       >
         <View style={{ flexDirection: "column", flex: 1 }}>
           <View style={styles.itemBody}>
-            <Text style={styles.itemsName}> {item?.word}</Text>
+            <Text style={styles.itemsName}> {item?.name}</Text>
           </View>
           <View style={styles.itemBody}>
-            <Text> {item?.meaning}</Text>
+            <Text> {item?.note}</Text>
           </View>
         </View>
 
@@ -80,7 +81,7 @@ function VWConf({ navigation, language }) {
               styles.itemStatus,
               {
                 backgroundColor:
-                  item.status == "0"
+                  item.status == "Pending"
                     ? "#FFEFC5"
                     : "#B5F5D1" && item.status == "2"
                     ? "#FFEFEE"
@@ -93,7 +94,7 @@ function VWConf({ navigation, language }) {
                 styles.statusFont,
                 {
                   color:
-                    item.status == "0"
+                    item.status == "Pending"
                       ? "#CEA032"
                       : "#63C579" && item.status == "2"
                       ? "#FF9797"
@@ -102,9 +103,9 @@ function VWConf({ navigation, language }) {
               ]}
             >
               {" "}
-              {item.status == "0"
+              {item.status == "Pending"
                 ? "Pending"
-                : item.status === "1"
+                : item.status === "Confirmed"
                 ? "Confirmed"
                 : "Declined"}
             </Text>
@@ -132,18 +133,26 @@ function VWConf({ navigation, language }) {
         keyExtractor={(e, i) => i.toString()}
         renderItem={renderItem}
         ItemSeparatorComponent={separator}
+        refreshControl={
+          <RefreshControl
+            //refresh control used for the Pull to Refresh
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
       />
     </SafeAreaView>
   );
 }
 
-export default VWConf;
+export default Applications;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    //paddingHorizontal:10,
+    paddingHorizontal: 20,
     justifyContent: "center",
+    paddingVertical: 20,
   },
   listTab: {
     alignSelf: "center",
@@ -180,7 +189,6 @@ const styles = StyleSheet.create({
   itemContainer: {
     flexDirection: "row",
     paddingVertical: 15,
-    paddingHorizontal: 20,
   },
   itemLogo: {
     padding: 10,
@@ -223,20 +231,10 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     letterSpacing: 0.25,
-    position: "relative",
-    alignSelf: "center",
-    color: "white",
+    color: "#8E2835",
+    paddingVertical: 15,
   },
-  textSubHead: {
-    flexDirection: "row",
-    fontSize: 13,
-    letterSpacing: 0.25,
-    color: "white",
-  },
-  title: {
-    top: 40,
-    //left: 110,
-  },
+
   statusFont: {
     fontWeight: "bold",
   },

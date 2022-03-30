@@ -23,27 +23,38 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 function Applications({ navigation }) {
   const [status, setStatus] = useState("All");
   const [datalist, setDatalist] = useState("");
+  const [refreshing, setRefreshing] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      firebase
-        .firestore()
-        .collection("users")
-        .where("applicant", "==", "1")
-        .where("status", "==", "2")
-        .get()
-        .then((snapshot) => {
-          let usersAll = snapshot.docs.map((doc) => {
-            const data = doc.data();
-            const id = doc.id;
-            return { id, ...data };
-          });
-          setDatalist(usersAll);
-        });
-    });
+    getData();
+  }, []);
 
-    return unsubscribe;
-  }, [navigation]);
+  const getData = () => {
+    //Service to get the data from the server to render
+    firebase
+      .firestore()
+      .collection("users")
+      .where("applicant", "==", "1")
+      .where("status", "==", "0")
+      .get()
+      .then((snapshot) => {
+        console.log(snapshot, "-=-=-=-=-=-=-=-=");
+        let users = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const id = doc.id;
+          return { id, ...data };
+        });
+        setDatalist(users);
+        setRefreshing(false);
+      });
+  };
+
+  const onRefresh = () => {
+    //Clear old data of the list
+    setDatalist([]);
+    //Call the Service to get the latest data
+    getData();
+  };
 
   const renderItem = ({ item, index }) => {
     return (
@@ -69,7 +80,7 @@ function Applications({ navigation }) {
               styles.itemStatus,
               {
                 backgroundColor:
-                  item.status == "Pending"
+                  item.status == "0"
                     ? "#FFEFC5"
                     : "#B5F5D1" && item.status == "2"
                     ? "#FFEFEE"
@@ -82,7 +93,7 @@ function Applications({ navigation }) {
                 styles.statusFont,
                 {
                   color:
-                    item.status == "Pending"
+                    item.status == "0"
                       ? "#CEA032"
                       : "#63C579" && item.status == "2"
                       ? "#FF9797"
@@ -91,9 +102,9 @@ function Applications({ navigation }) {
               ]}
             >
               {" "}
-              {item.status == "Pending"
+              {item.status == "0"
                 ? "Pending"
-                : item.status === "Confirmed"
+                : item.status === "1"
                 ? "Confirmed"
                 : "Declined"}
             </Text>
@@ -121,6 +132,13 @@ function Applications({ navigation }) {
         keyExtractor={(e, i) => i.toString()}
         renderItem={renderItem}
         ItemSeparatorComponent={separator}
+        refreshControl={
+          <RefreshControl
+            //refresh control used for the Pull to Refresh
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
       />
     </SafeAreaView>
   );

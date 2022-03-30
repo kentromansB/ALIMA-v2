@@ -6,11 +6,11 @@ import {
   Image,
   Pressable,
   ScrollView,
-  CheckBox,
 } from "react-native";
 import { TouchableOpacity } from "react-native-gesture-handler";
 import Unorderedlist from "react-native-unordered-list";
 import Svg, { Path, G, Rect, Polygon, Title } from "react-native-svg";
+import Checkbox from "expo-checkbox";
 
 export default function Course({ navigation, route }) {
   const [toggleCheckBox, setToggleCheckBox] = useState(false);
@@ -51,11 +51,17 @@ export default function Course({ navigation, route }) {
         </Text>
 
         <View style={styles.checkboxContainer}>
-          <CheckBox
+          {/* <CheckBox
             disabled={false}
             value={toggleCheckBox}
-            onValueChange={(newValue) => setToggleCheckBox(newValue)}
+            
             style={styles.checkbox}
+          /> */}
+          <Checkbox
+            style={styles.checkbox}
+            value={toggleCheckBox}
+            onValueChange={(newValue) => setToggleCheckBox(newValue)}
+            color={toggleCheckBox ? "#215a88" : undefined}
           />
           <Text style={styles.description}> I agree to all conditions</Text>
         </View>

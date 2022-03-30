@@ -1,18 +1,14 @@
 import React, { useEffect, useState } from "react";
 import {
   View,
-  TextInput,
-  Image,
-  Button,
-  TouchableOpacity,
   Text,
   StyleSheet,
+  Image,
   Pressable,
-  ScrollView,
-  Alert,
-  Dimensions,
-  SafeAreaView,
+  TextInput,
   FlatList,
+  RefreshControl,
+  SafeAreaView,
 } from "react-native";
 import firebase from "firebase";
 import { NavigationContainer } from "@react-navigation/native";
@@ -20,29 +16,40 @@ require("firebase/firestore");
 require("firebase/firebase-storage");
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 
-function Applications({ navigation }) {
+function ApplyAll({ navigation }) {
   const [status, setStatus] = useState("All");
   const [datalist, setDatalist] = useState("");
+  const [refreshing, setRefreshing] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = navigation.addListener("focus", () => {
-      firebase
-        .firestore()
-        .collection("users")
-        .where("applicant", "==", "1")
-        .get()
-        .then((snapshot) => {
-          let usersAll = snapshot.docs.map((doc) => {
-            const data = doc.data();
-            const id = doc.id;
-            return { id, ...data };
-          });
-          setDatalist(usersAll);
-        });
-    });
+    getData();
+  }, []);
 
-    return unsubscribe;
-  }, [navigation]);
+  const getData = () => {
+    //Service to get the data from the server to render
+    firebase
+      .firestore()
+      .collection("users")
+      .where("applicant", "==", "1")
+      .get()
+      .then((snapshot) => {
+        console.log(snapshot, "-=-=-=-=-=-=-=-=");
+        let users = snapshot.docs.map((doc) => {
+          const data = doc.data();
+          const id = doc.id;
+          return { id, ...data };
+        });
+        setDatalist(users);
+        setRefreshing(false);
+      });
+  };
+
+  const onRefresh = () => {
+    //Clear old data of the list
+    setDatalist([]);
+    //Call the Service to get the latest data
+    getData();
+  };
 
   const renderItem = ({ item, index }) => {
     return (
@@ -118,12 +125,19 @@ function Applications({ navigation }) {
         keyExtractor={(e, i) => i.toString()}
         renderItem={renderItem}
         ItemSeparatorComponent={separator}
+        refreshControl={
+          <RefreshControl
+            //refresh control used for the Pull to Refresh
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+          />
+        }
       />
     </SafeAreaView>
   );
 }
 
-export default Applications;
+export default ApplyAll;
 
 const styles = StyleSheet.create({
   container: {
